@@ -1,0 +1,35 @@
+# ------------------------
+# Core API Framework
+# ------------------------
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+
+# ------------------------
+# Database & Supabase
+# ------------------------
+psycopg2-binary==2.9.9
+supabase==2.4.0  # Supabase Python client
+
+# ------------------------
+# Authentication & Security
+# ------------------------
+python-jose==3.3.0
+pyjwt==2.9.0
+python-multipart==0.0.9   # For file uploads (UploadFile)
+
+# ------------------------
+# PDF Text Extraction
+# ------------------------
+PyMuPDF==1.24.9   # (imported as "fitz")
+
+# ------------------------
+# AI Embeddings
+# ------------------------
+sentence-transformers==3.0.1
+torch>=2.0.0
+transformers>=4.41.0
+
+# ------------------------
+# Environment Variables
+# ------------------------
+python-dotenv==1.0.1

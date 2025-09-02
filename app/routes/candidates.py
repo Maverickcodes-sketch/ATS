@@ -1,5 +1,5 @@
 from fastapi import APIRouter, UploadFile, Depends, HTTPException
-from app.auth import get_current_user
+from app.auth import get_current_user,require_role
 from app.db import get_db_connection
 from app.embeddings import extract_text_from_pdf, generate_embedding
 
@@ -7,6 +7,7 @@ router = APIRouter()
 
 @router.post("/upload-resume")
 def upload_resume(file: UploadFile, user=Depends(get_current_user)):
+    require_role(user, "candidate")
     user_id = user["sub"]
     file_bytes = file.file.read()
     text = extract_text_from_pdf(file_bytes)
@@ -27,6 +28,7 @@ def upload_resume(file: UploadFile, user=Depends(get_current_user)):
 
 @router.get("/recommend-companies")
 def recommend_companies(top_n: int = 5, user=Depends(get_current_user)):
+    require_role(user, "candidate")
     user_id = user["sub"]
 
     with get_db_connection() as conn:

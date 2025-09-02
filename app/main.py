@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 # # Import routers
 from app import auth
-from app.routes import candidates, companies, applications
+from app.routes import candidates, companies, applications,skill_gap
 
 # # Create FastAPI app
 app = FastAPI(
@@ -27,6 +27,8 @@ app.add_middleware(
 app.include_router(candidates.router, prefix="/candidates", tags=["Candidates"])
 app.include_router(companies.router, prefix="/companies", tags=["Companies"])
 app.include_router(applications.router, prefix="/applications", tags=["Applications"])
+app.include_router(skill_gap.router, prefix="/candidates", tags=["Skill Gap"])
+
 
 # Root endpoint
 @app.get("/")

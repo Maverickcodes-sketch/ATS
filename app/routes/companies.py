@@ -1,5 +1,5 @@
 from fastapi import APIRouter, UploadFile, Depends
-from app.auth import get_current_user
+from app.auth import get_current_user,require_role
 from app.db import get_db_connection
 from app.embeddings import extract_text_from_pdf, generate_embedding
 
@@ -7,6 +7,7 @@ router = APIRouter()
 
 @router.post("/upload-requirement")
 def upload_requirement(file: UploadFile, user=Depends(get_current_user)):
+    require_role(user, "company")
     owner_id = user["sub"]
     file_bytes = file.file.read()
     text = extract_text_from_pdf(file_bytes)
@@ -24,25 +25,39 @@ def upload_requirement(file: UploadFile, user=Depends(get_current_user)):
     return {"status": "success", "message": "Requirement uploaded"}
 
 
-@router.get("/recommend-candidates")
-def recommend_candidates(top_n: int = 5, user=Depends(get_current_user)):
-    owner_id = user["sub"]
+from fastapi import APIRouter
+from typing import Dict
 
+router = APIRouter()
+
+@router.get("/leaderboard/{job_id}")
+def leaderboard(job_id: str):
+    """
+    Returns a leaderboard of all applicants for a job,
+    sorted by score (descending), using your existing DB connection.
+    """
     with get_db_connection() as conn:
         cur = conn.cursor()
         cur.execute("""
-            SELECT cand.user_id, cand.full_name, cand.email, 1 - (cand.resume_embedding <=> cr.embedding) AS similarity
-            FROM company_requirements cr
-            JOIN companies comp ON comp.id = cr.company_id
-            JOIN candidates cand ON TRUE
-            WHERE comp.owner_id = %s
-            ORDER BY similarity DESC
-            LIMIT %s;
-        """, (owner_id, top_n))
+            SELECT candidate_id, score, probability
+            FROM applications
+            WHERE job_id = %s
+            ORDER BY score DESC;
+        """, (job_id,))
         results = cur.fetchall()
 
-    return [
-        {"candidate_id": r[0], "name": r[1], "email": r[2], "score": float(r[3])}
+    leaderboard = [
+        {
+            "candidate_id": r[0],
+            "score": round(r[1], 4),
+            "probability_percent": round(r[2] if r[2] is not None else 0, 2)
+        }
         for r in results
     ]
+
+    return {
+        "job_id": job_id,
+        "leaderboard": leaderboard
+    }
+
 

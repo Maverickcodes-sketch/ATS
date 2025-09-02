@@ -9,6 +9,5 @@ def extract_text_from_pdf(file_bytes: bytes) -> str:
     for page in doc:
         text += page.get_text()
     return text
-
 def generate_embedding(text: str):
     return model.encode([text])[0].tolist()
